@@ -15,6 +15,31 @@ const CACHE_INVALIDATE = JSON.stringify({
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
 const SETTINGS_PATH = process.env.SETTINGS_PATH || './settings.js';
 
+// Aggregate a list of all node_modules directories that appear beneath the root
+// node_modules directory.  This allows webpack to search exhaustively for
+// a dependency, finding those that might not have been hoisted by yarn because
+// they are in conflict with other deps.
+function getNodeModulePaths() {
+  const nodeModulePaths = [];
+  const children = [NODE_MODULE_PATH];
+  while (children.length > 0) {
+    const child = children.shift();
+    if (child.slice(-12) === 'node_modules') {
+      nodeModulePaths.push(child);
+    }
+    const allFiles = fs.readdirSync(child).map(f => path.join(child, f));
+    allFiles.forEach(function(file) {
+      const stats = fs.statSync(file);
+      if (stats.isDirectory()) {
+        children.push(file);
+      }
+    });
+  }
+  return nodeModulePaths;
+}
+
+const ALL_NODE_MODULE_PATHS = getNodeModulePaths();
+
 function configure(IS_TEST) {
 
   const config = {
@@ -34,10 +59,9 @@ function configure(IS_TEST) {
     },
     resolve: {
       extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html'],
-      modules: [
-        NODE_MODULE_PATH,
+      modules: ALL_NODE_MODULE_PATHS.concat([
         path.join(__dirname, 'app', 'scripts', 'modules'),
-      ],
+      ]),
       alias: {
         'root': __dirname,
         'core': path.join(__dirname, 'app', 'scripts', 'modules', 'core', 'src'),
