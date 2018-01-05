@@ -14,6 +14,8 @@ const CACHE_INVALIDATE = JSON.stringify({
 
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
 const SETTINGS_PATH = process.env.SETTINGS_PATH || './settings.js';
+const KAYENTA_NODE_MODULE_PATH = path.join(NODE_MODULE_PATH, '@spinnaker/kayenta/node_modules');
+const REACT_BOOTSTRAP_NODE_MODULE_PATH = path.join(NODE_MODULE_PATH, 'react-bootstrap/node_modules');
 
 function configure(IS_TEST) {
 
@@ -37,6 +39,8 @@ function configure(IS_TEST) {
       modules: [
         NODE_MODULE_PATH,
         path.join(__dirname, 'app', 'scripts', 'modules'),
+        KAYENTA_NODE_MODULE_PATH,
+        REACT_BOOTSTRAP_NODE_MODULE_PATH,
       ],
       alias: {
         'root': __dirname,

@@ -26,6 +26,7 @@
     "int": "protractor protractor.conf.js"
   },
   "dependencies": {
+    "@spinnaker/kayenta": "^0.0.19",
     "@uirouter/react-hybrid": "0.0.14",
     "@uirouter/rx": "0.4.5",
     "@uirouter/visualizer": "5.1.3",
