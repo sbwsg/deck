@@ -158,6 +158,14 @@ export class AccountService {
     return result;
   }
 
+  public applicationAccounts(application: Application = null): Promise<IAccountDetails[]> {
+    return Promise.all([this.listProviders(application), this.listAccounts()]).then(([providers, accounts]) => {
+      return providers.reduce((memo, p) => {
+        return memo.concat(accounts.filter(acc => acc.cloudProvider === p));
+      }, [] as IAccountDetails[]);
+    });
+  }
+
   public listProviders(application: Application = null): IPromise<string[]> {
     return this.listAccounts()
       .then((accounts: IAccount[]) => {
