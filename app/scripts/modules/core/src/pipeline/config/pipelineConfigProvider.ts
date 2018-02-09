@@ -91,7 +91,8 @@ export class PipelineConfigProvider implements IServiceProvider {
     return cloneDeep(this.artifactKinds);
   }
 
-  private getCloudProvidersForStage(type: IStageTypeConfig, allStageTypes: IStageTypeConfig[], providers: string[]): string[] {
+  private getCloudProvidersForStage(type: IStageTypeConfig, allStageTypes: IStageTypeConfig[], accounts: IAccountDetails[]): string[] {
+    let providers = Array.from(new Set(accounts.map(acc => acc.cloudProvider)));
     let cloudProviders: string[] = [];
     if (type.providesFor) {
       cloudProviders = type.providesFor;
@@ -107,7 +108,12 @@ export class PipelineConfigProvider implements IServiceProvider {
         }
       });
     } else {
-      cloudProviders = providers;
+      cloudProviders = Array.from(new Set(accounts.reduce((memo, acc) => {
+        if (!isExcludedAccount(acc, type.excludedCloudProviders)) {
+          memo.push(acc.cloudProvider);
+        }
+        return memo;
+      }, [])));
     }
     // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
     const dockerBakeEnabled = SETTINGS.feature.dockerBake && type.key === 'bake';
@@ -127,13 +133,11 @@ export class PipelineConfigProvider implements IServiceProvider {
     if (providers.length === 0) {
       return configurableStageTypes;
     }
-    configurableStageTypes.forEach(type => type.cloudProviders = this.getCloudProvidersForStage(type, allStageTypes, providers));
+    configurableStageTypes.forEach(type => type.cloudProviders = this.getCloudProvidersForStage(type, allStageTypes, accounts));
     // remove stage types where all given provider accounts are explicitly excluded by that type
     configurableStageTypes = configurableStageTypes.filter(type => {
       return !accounts.every(a => {
-        return !!((type.excludedCloudProviders || []).find(p => {
-          return p.cloudProvider === a.cloudProvider && p.providerVersion === a.providerVersion;
-        }));
+        return isExcludedAccount(a, type.excludedCloudProviders);
       });
     });
     return configurableStageTypes
@@ -225,6 +229,12 @@ export class PipelineConfigProvider implements IServiceProvider {
     this.$injector = $injector;
     return this;
   }
+}
+
+function isExcludedAccount(account: IAccountDetails, excludedProviders: { cloudProvider: string, providerVersion: string }[]) {
+  return !!(excludedProviders || []).find(p => {
+    return p.cloudProvider === account.cloudProvider && p.providerVersion === account.providerVersion;
+  });
 }
 
 export const PIPELINE_CONFIG_PROVIDER = 'spinnaker.core.pipeline.config.configProvider';
