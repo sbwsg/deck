@@ -2,6 +2,8 @@ import { IModalService } from 'angular-ui-bootstrap';
 import { IPromise, module, IQService } from 'angular';
 import { uniq } from 'lodash';
 
+import { IAccountDetails } from 'core/account/account.service';
+
 import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
 import { Application } from 'core/application/application.model';
 import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
@@ -15,20 +17,27 @@ export class ProviderSelectionService {
     'ngInject';
   }
 
-  public selectProvider(application: Application, feature: string): IPromise<string> {
-    return this.accountService.listProviders(application).then((providers) => {
-      let provider;
-      let reducedProviders: string[] = [];
+  public selectProvider(application: Application, feature: string, excludedProviders: { cloudProvider: string, providerVersion: string }[] = []): IPromise<string> {
+    return this.accountService.applicationAccounts(application).then(accounts => {
+      let reducedAccounts: IAccountDetails[] = [];
       if (feature) {
-        reducedProviders = providers.filter((p) => this.cloudProviderRegistry.hasValue(p, feature));
+        reducedAccounts = accounts.filter(a => this.cloudProviderRegistry.hasValue(a.cloudProvider, feature));
       }
 
-      // reduce the providers to the smallest, unique collection taking into consideration the useProvider values
-      reducedProviders = uniq(reducedProviders.map((providerName) => {
-        const providerFeature = this.cloudProviderRegistry.getProvider(providerName)[feature] || {};
-        return providerFeature.useProvider || providerName;
+      reducedAccounts = reducedAccounts.filter(acc => {
+        return !excludedProviders.find(p => {
+          return p.cloudProvider === acc.cloudProvider &&
+                 p.providerVersion === acc.providerVersion;
+        });
+      });
+
+      // reduce the accounts to the smallest, unique collection taking into consideration the useProvider values
+      const reducedProviders = uniq(reducedAccounts.map(a => {
+        const providerFeature = this.cloudProviderRegistry.getProvider(a.cloudProvider)[feature] || {};
+        return providerFeature.useProvider || a.cloudProvider;
       }));
 
+      let provider;
       if (reducedProviders.length > 1) {
         provider = this.$uibModal.open({
           templateUrl: require('./providerSelection.html'),

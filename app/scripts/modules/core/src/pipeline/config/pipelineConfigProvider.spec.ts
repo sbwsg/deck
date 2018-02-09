@@ -11,6 +11,7 @@ const mockProviderAccount = {
   requiredGroupMembership: [] as string[],
   type: 'foobar',
   accountType: 'foo',
+  authorized: true,
   challengeDestructiveActions: false,
   cloudProvider: 'foo',
   environment: 'bar',
