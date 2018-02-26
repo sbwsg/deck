@@ -37,6 +37,8 @@ import { KUBERNETES_MULTI_MANIFEST_SELECTOR } from './manifest/selector/multiSel
 import { KUBERNETES_SHOW_MANIFEST_YAML } from './manifest/showManifestYaml.component';
 import { KUBERNETES_SHOW_MANIFEST_DETAILS } from './manifest/showManifestDetails.component';
 
+import './ClusterPodTitle';
+
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
 templates.keys().forEach(function (key) {

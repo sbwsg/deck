@@ -50,7 +50,7 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
       <div className="row rollup-entry sub-group">
         <div className="sticky-header">
           <div className="rollup-summary">
-            <ClusterPodTitleWrapper {...this.props} />
+            <ClusterPodTitleWrapper accountId={this.props.parentHeading} {...this.props} />
             {showCloseButton && (
               <div className="remove-button">
                 <Tooltip value="Remove cluster from view">

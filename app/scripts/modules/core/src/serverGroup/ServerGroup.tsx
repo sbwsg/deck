@@ -12,7 +12,6 @@ import { InstanceList } from 'core/instance/InstanceList';
 import { Instances } from 'core/instance/Instances';
 import { ScrollToService } from 'core/utils';
 import { ISortFilter } from 'core/filterModel';
-
 import { ServerGroupHeader } from './ServerGroupHeader';
 
 export interface JenkinsViewModel {
