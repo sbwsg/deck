@@ -36,6 +36,7 @@ import { KUBERNETES_MANIFEST_ANNOTATIONS } from './manifest/manifestAnnotations.
 import { KUBERNETES_MULTI_MANIFEST_SELECTOR } from './manifest/selector/multiSelector.component';
 import { KUBERNETES_SHOW_MANIFEST_YAML } from './manifest/showManifestYaml.component';
 import { KUBERNETES_SHOW_MANIFEST_DETAILS } from './manifest/showManifestDetails.component';
+import { ClusterPodTitle } from './ClusterPodTitle';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
@@ -133,5 +134,6 @@ module(KUBERNETES_V2_MODULE, [
         'script',
         'shrinkCluster',
       ],
+      clusterPodTitleComponent: ClusterPodTitle,
     });
   });
