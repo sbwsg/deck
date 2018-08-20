@@ -36,6 +36,14 @@
                                 excluded-artifact-types="ctrl.excludedManifestArtifactPatterns"
                                 show-icons="true">
     </expected-artifact-selector>
+    <inline-artifact-editor ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+                            accounts="ctrl.metadata.backingData.artifactAccounts"
+                            artifacts="ctrl.expectedArtifacts"
+                            selected-account-id="ctrl.$scope.stage.manifestArtifactAccount"
+                            selected-artifact-id="ctrl.$scope.stage.manifestArtifactId"
+                            excluded-artifact-types="ctrl.excludedManifestArtifactPatterns"
+                            show-icons="true">
+    </inline-artifact-editor>
     <hr>
     <expected-artifact-multi-selector command="ctrl.$scope.stage"
                                       ids-field="requiredArtifactIds"

@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CloudProviderRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry, INLINE_ARTIFACT_EDITOR } from '@spinnaker/core';
 
 import '../logo/kubernetes.logo.less';
 import { KUBERNETES_MANIFEST_BASIC_SETTINGS } from './manifest/wizard/basicSettings.component';
@@ -83,6 +83,7 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_EVENTS,
   KUBERNETES_ANNOTATION_CUSTOM_SECTIONS,
   KUBERNETES_V2_RESOURCE_STATES,
+  INLINE_ARTIFACT_EDITOR,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',

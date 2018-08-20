@@ -1,6 +1,6 @@
 export interface IArtifact {
   kind?: string; // json model only
-  id: string;
+  id?: string;
   type?: string;
   name?: string;
   version?: string;
