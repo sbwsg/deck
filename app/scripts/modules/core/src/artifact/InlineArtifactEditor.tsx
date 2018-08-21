@@ -1,9 +1,11 @@
 import * as React from 'react';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
+import { bindAll, get } from 'lodash';
 import {
   IArtifactAccount,
   IArtifactKindConfig,
+  IArtifact,
   IExpectedArtifact,
   Registry,
   TetheredSelect,
@@ -15,83 +17,105 @@ export interface IInlineArtifactEditorProps {
   artifacts: IExpectedArtifact[];
   excludedArtifactTypes: RegExp[];
   offeredArtifactTypes: RegExp[];
-  onEdit: (ea: IExpectedArtifact, a: IArtifactAccount) => void;
+  onChangeArtifact: (ea: IExpectedArtifact) => void;
+  onChangeArtifactAccount: (a: IArtifactAccount) => void;
   selectedAccountId: string;
   selectedArtifactId: string;
   showIcons: boolean;
 }
 
+interface IInlineArtifactCache {
+  [type: string]: IExpectedArtifact;
+}
+
 export interface IInlineArtifactEditorState {
   currentEditArtifact: IExpectedArtifact;
-  editedArtifactCache: { [type: string]: IExpectedArtifact };
+  editedArtifactCache: IInlineArtifactCache;
   selectedAccountId: string;
   selectedArtifactId: string;
 }
 
 export class InlineArtifactEditor extends React.Component<IInlineArtifactEditorProps, IInlineArtifactEditorState> {
+  private fallbackCacheKey = 'custom';
+
   constructor(props: IInlineArtifactEditorProps) {
     super(props);
+    bindAll(this, ['onChangeArtifactType', 'onChangeArtifact', 'onChangeArtifactAccount']);
     this.onChangeArtifactType = this.onChangeArtifactType.bind(this);
-    console.log('InlineArtifactEditor', props);
     const currentEditArtifact = props.selectedArtifactId
       ? props.artifacts.find(a => a.id === props.selectedArtifactId)
       : null;
+    const artifactType = get(currentEditArtifact, ['matchArtifact', 'type'], this.fallbackCacheKey);
+    const cache = currentEditArtifact ? { [artifactType]: currentEditArtifact } : {};
     this.state = {
       currentEditArtifact,
-      editedArtifactCache: currentEditArtifact
-        ? { [currentEditArtifact.matchArtifact.type || 'custom']: currentEditArtifact }
-        : {},
+      editedArtifactCache: cache,
       selectedAccountId: props.selectedAccountId,
       selectedArtifactId: props.selectedArtifactId,
     };
   }
 
+  private cacheHas(type: string): boolean {
+    return !!this.state.editedArtifactCache[type || this.fallbackCacheKey];
+  }
+
+  private cacheGet(type: string): IExpectedArtifact {
+    return this.state.editedArtifactCache[type || this.fallbackCacheKey];
+  }
+
+  private cacheSet(type: string, ea: IExpectedArtifact) {
+    if (type == null) {
+      type = this.fallbackCacheKey;
+    }
+    const cache = { ...this.state.editedArtifactCache, [type]: ea };
+    this.setState({ editedArtifactCache: cache });
+    console.log('cache set', cache);
+  }
+
+  private baseArtifact(type: string) {
+    return {
+      type: type || this.fallbackCacheKey,
+    };
+  }
+
   private onChangeArtifactType(newConfig: IArtifactKindConfig) {
     console.log('onChangeArtifactType', newConfig);
+    let artifact: IExpectedArtifact;
     if (newConfig == null) {
-      this.setState({
-        currentEditArtifact: null,
-      });
-    } else if (this.state.editedArtifactCache.hasOwnProperty(newConfig.type || 'custom')) {
-      this.setState({
-        currentEditArtifact: this.state.editedArtifactCache[newConfig.type || 'custom'],
-      });
+      artifact = null;
+    } else if (this.cacheHas(newConfig.type)) {
+      artifact = this.cacheGet(newConfig.type);
     } else {
-      const newArtifact: IExpectedArtifact = {
-        matchArtifact: {
-          type: newConfig.type,
-        },
-        defaultArtifact: {
-          type: newConfig.type,
-        },
+      artifact = {
+        matchArtifact: this.baseArtifact(newConfig.type),
+        defaultArtifact: this.baseArtifact(newConfig.type),
         id: UUIDGenerator.generateUuid(),
         usePriorArtifact: false,
         useDefaultArtifact: false,
       };
-      console.log('onChangeArtifactType', newArtifact);
-      this.setState({
-        currentEditArtifact: newArtifact,
-        editedArtifactCache: { ...this.state.editedArtifactCache, [newConfig.type || 'custom']: newArtifact },
-      });
+      this.cacheSet(newConfig.type, artifact);
+      this.setState({ selectedArtifactId: artifact.id });
     }
+    this.setState({
+      currentEditArtifact: artifact,
+    });
   }
 
   private onChangeArtifact(artifact: IArtifact) {
-    const { currentEditArtifact, editedArtifactCache } = this.state;
+    const { currentEditArtifact } = this.state;
     const updatedArtifact = {
       ...currentEditArtifact,
       matchArtifact: artifact,
     };
     console.log('updatedArtifact', updatedArtifact);
-    const updatedCache = {
-      ...editedArtifactCache,
-      [artifact.type || 'custom']: updatedArtifact,
-    };
-    console.log('updatedCache for type', artifact.type, { updatedCache, editedArtifactCache });
+    this.cacheSet(artifact.type, updatedArtifact);
     this.setState({
       currentEditArtifact: updatedArtifact,
-      editedArtifactCache: updatedCache,
     });
+  }
+
+  private onChangeArtifactAccount(account: IArtifactAccount) {
+    this.setState({ selectedAccountId: account.name });
   }
 
   private isOffered(ak: IArtifactKindConfig) {
@@ -124,9 +148,12 @@ export class InlineArtifactEditor extends React.Component<IInlineArtifactEditorP
       ak => ak.isMatch && this.hasAccount(ak) && this.isOffered(ak) && !this.isExcluded(ak),
     );
     const optRenderer = (o: IArtifactKindConfig) => (
-      <span>
-        {o.label} - {o.description}
-      </span>
+      console.log('opt', o),
+      (
+        <span>
+          {o.label} - {o.description}
+        </span>
+      )
     );
     const valRenderer = (v: IExpectedArtifact) => {
       if (v && v.matchArtifact) {
@@ -136,9 +163,10 @@ export class InlineArtifactEditor extends React.Component<IInlineArtifactEditorP
       }
     };
     const value = this.state.currentEditArtifact;
-    console.log({ artifactKinds, options, value });
-    const valueKindConfig = value && artifactKinds.find(ak => ak.type === value.matchArtifact.type);
+    const valueKindConfig =
+      value && artifactKinds.find(ak => ak.type === value.matchArtifact.type || ak.key === this.fallbackCacheKey);
     const ValueCmp = valueKindConfig && valueKindConfig.cmp;
+    console.log('render', 'options', options, 'value', value, 'valueKindConfig', valueKindConfig);
     return (
       <div className="form-group">
         <div>
@@ -170,7 +198,6 @@ export class InlineArtifactEditor extends React.Component<IInlineArtifactEditorP
   }
 }
 
-console.log('Registering inline artifact editor as angular module');
 export const INLINE_ARTIFACT_EDITOR = 'spinnaker.core.artifact.inline.editor';
 module(INLINE_ARTIFACT_EDITOR, []).component(
   'inlineArtifactEditor',
@@ -179,7 +206,6 @@ module(INLINE_ARTIFACT_EDITOR, []).component(
     'artifacts',
     'excludedArtifactTypes',
     'offeredArtifactTypes',
-    'onEdit',
     'selectedAccountId',
     'selectedArtifactId',
     'showIcons',
