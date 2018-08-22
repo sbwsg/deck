@@ -22,10 +22,16 @@ export class InlineArtifactEditor extends React.Component<IInlineArtifactEditorP
   }
 
   private onChangeKind(newConfig: IArtifactKindConfig) {
-    const artifact = cloneDeep(this.props.expectedArtifact);
-    artifact.matchArtifact.kind = newConfig.key;
-    artifact.matchArtifact.type = newConfig.type;
-    this.publishExpectedArtifact(artifact);
+    if (newConfig == null) {
+      this.publishExpectedArtifact(null);
+    } else {
+      const artifact = cloneDeep(this.props.expectedArtifact);
+      artifact.matchArtifact.kind = newConfig.key;
+      if (newConfig.type) {
+        artifact.matchArtifact.type = newConfig.type;
+      }
+      this.publishExpectedArtifact(artifact);
+    }
   }
 
   private onEditArtifact(artifact: IArtifact) {
@@ -83,21 +89,23 @@ export class InlineArtifactEditor extends React.Component<IInlineArtifactEditorP
   public render(): any {
     const kinds = Registry.pipeline.getArtifactKinds();
     const value = this.props.expectedArtifact;
-    const valueKind = !!value ? kinds.find(ak => ak.type === value.matchArtifact.type) : null;
+    const valueKind = !!value ? kinds.find(ak => ak.key === value.matchArtifact.kind) : null;
     const ValueCmp = valueKind && valueKind.cmp;
     return (
-      <div className="form-group">
-        <div>
-          <label className="col-md-3 sm-label-right">Type</label>
-          <ArtifactKindSelect
-            kinds={this.kindOptions(kinds)}
-            selected={valueKind}
-            className="col-md-8"
-            onChange={this.onChangeKind}
-          />
+      <div>
+        <div className="form-group">
+          <div>
+            <label className="col-md-3 sm-label-right" />
+            <ArtifactKindSelect
+              kinds={this.kindOptions(kinds)}
+              selected={valueKind}
+              className="col-md-8"
+              onChange={this.onChangeKind}
+            />
+          </div>
         </div>
         {ValueCmp && (
-          <div>
+          <div className="form-group">
             <ValueCmp artifact={value.matchArtifact} labelColumns={3} fieldColumns={8} onChange={this.onEditArtifact} />
           </div>
         )}

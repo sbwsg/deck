@@ -50,7 +50,7 @@ module(BASE64_ARTIFACT, []).config(() => {
                 type="text"
                 placeholder="base64-artifact"
                 className="form-control input-sm"
-                value={props.artifact.name}
+                value={props.artifact.name || ''}
                 onChange={e => {
                   const clone = { ...props.artifact };
                   clone.name = e.target.value;

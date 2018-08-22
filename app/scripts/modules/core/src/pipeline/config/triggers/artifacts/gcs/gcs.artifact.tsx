@@ -50,7 +50,7 @@ module(GCS_ARTIFACT, []).config(() => {
                 type="text"
                 placeholder="gs://bucket/path/to/file"
                 className="form-control input-sm"
-                value={props.artifact.name}
+                value={props.artifact.name || ''}
                 onChange={e => {
                   const clone = { ...props.artifact };
                   clone.name = e.target.value;

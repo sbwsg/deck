@@ -38,6 +38,7 @@ export class ArtifactKindSelect extends React.Component<IArtifactKindSelectProps
         value={this.props.selected}
         valueRenderer={this.renderOption}
         onChange={this.onChange}
+        clearable={false}
       />
     );
   }

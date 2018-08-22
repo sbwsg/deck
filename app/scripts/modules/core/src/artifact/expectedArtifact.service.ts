@@ -7,7 +7,7 @@ export class ExpectedArtifactService {
     if (!stage || !pipeline) {
       return [];
     }
-    let result = pipeline.expectedArtifacts || [];
+    let result = pipeline.expectedArtifacts ? [...pipeline.expectedArtifacts] : [];
     PipelineConfigService.getAllUpstreamDependencies(pipeline, stage).forEach(s => {
       const expectedArtifact = (s as any).expectedArtifact;
       if (expectedArtifact) {

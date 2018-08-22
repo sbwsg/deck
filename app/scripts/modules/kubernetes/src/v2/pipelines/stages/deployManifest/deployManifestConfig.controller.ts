@@ -1,5 +1,5 @@
 import { IController, IScope } from 'angular';
-import { get } from 'lodash';
+import { get, set } from 'lodash';
 import { loadAll } from 'js-yaml';
 
 import {
@@ -33,6 +33,8 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
     ).then((builtCommand: IKubernetesManifestCommandData) => {
       if (this.$scope.stage.isNew) {
         Object.assign(this.$scope.stage, builtCommand.command);
+      }
+      if (!this.$scope.stage.source) {
         this.$scope.stage.source = this.textSource;
       }
 
@@ -44,19 +46,16 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
       this.state.loaded = true;
     });
 
-    this.expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(
-      $scope.stage,
-      $scope.$parent.pipeline,
-    );
+    this.updateExpectedArtifacts();
 
     this.onChangeManifestArtifact = (expectedArtifact: IExpectedArtifact, account: IArtifactAccount) => {
-      const pipelineArtifacts = this.$scope.$parent.pipeline.expectedArtifacts;
+      const pipelineArtifacts = this.$scope.$parent.pipeline.expectedArtifacts.slice();
       if (expectedArtifact) {
-        for (let i = 0; i < pipelineArtifacts.length; i++) {
-          if (pipelineArtifacts[i].id === expectedArtifact.id) {
-            pipelineArtifacts[i] = expectedArtifact;
-            break;
-          }
+        const index = (pipelineArtifacts || []).findIndex((a: IExpectedArtifact) => a.id === expectedArtifact.id);
+        if (index > -1) {
+          pipelineArtifacts[index] = expectedArtifact;
+          this.$scope.$parent.pipeline.expectedArtifacts = pipelineArtifacts;
+          this.updateExpectedArtifacts();
         }
         this.$scope.stage.manifestArtifactId = expectedArtifact.id;
       } else {
@@ -101,7 +100,16 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
     }
     if (createNew) {
       artifact = ExpectedArtifactService.addNewArtifactTo(this.$scope.$parent.pipeline);
+      this.updateExpectedArtifacts();
+      this.$scope.stage.manifestArtifactId = artifact.id;
     }
     return artifact;
+  }
+
+  public updateExpectedArtifacts() {
+    this.expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(
+      this.$scope.stage,
+      this.$scope.$parent.pipeline,
+    );
   }
 }
