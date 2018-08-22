@@ -1,6 +1,6 @@
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { IPipeline, IStage, IExpectedArtifact, IExecutionContext } from 'core/domain';
-import { UUIDGenerator } from 'core/utils/uuid.service';
+import { UUIDGenerator } from 'core';
 
 export class ExpectedArtifactService {
   public static getExpectedArtifactsAvailableToStage(stage: IStage, pipeline: IPipeline): IExpectedArtifact[] {

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { IArtifact } from 'core';
 
-interface IArtifactComponentProps {
+interface IArtifactKindComponentProps {
   artifact: IArtifact;
   onChange: (artifact: IArtifact) => void;
   labelColumns: number;
@@ -17,7 +17,7 @@ export interface IArtifactKindConfig {
   isMatch: boolean;
   isPubliclyAccessible?: boolean;
   template: string;
-  cmp?: React.SFC<IArtifactComponentProps>;
+  cmp?: React.SFC<IArtifactKindComponentProps>;
   controller: Function;
   controllerAs?: string;
 }

@@ -7,6 +7,8 @@ export function summarizeExpectedArtifact() {
       return '';
     }
 
+    console.log('summarizeExpectedArtifact', expected);
+
     const artifact = copy(expected.matchArtifact);
     return Object.keys(artifact)
       .filter((k: keyof IArtifact) => artifact[k])

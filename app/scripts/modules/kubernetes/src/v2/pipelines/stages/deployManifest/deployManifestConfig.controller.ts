@@ -7,7 +7,7 @@ import {
   KubernetesManifestCommandBuilder,
 } from '../../../manifest/manifestCommandBuilder.service';
 
-import { ExpectedArtifactService, IExpectedArtifact, ArtifactTypePatterns } from '@spinnaker/core';
+import { ExpectedArtifactService, IExpectedArtifact, ArtifactTypePatterns, IArtifactAccount } from '@spinnaker/core';
 
 export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public state = {
@@ -46,6 +46,12 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
       $scope.stage,
       $scope.$parent.pipeline,
     );
+
+    this.onChangeManifestArtifact = (expectedArtifact: IExpectedArtifact, account: IArtifactAccount) => {
+      this.$scope.stage.manifestArtifactId = expectedArtifact ? expectedArtifact.id : '';
+      this.$scope.stage.manifestArtifactAccount = account ? account.name : '';
+      this.$scope.$apply();
+    };
   }
 
   public change() {

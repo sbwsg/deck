@@ -1,7 +1,6 @@
 'use strict';
 
-import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService';
-import { ExpectedArtifactService } from 'core/artifact/expectedArtifact.service';
+import { ExpectedArtifactService, ArtifactReferenceService } from 'core';
 import { Registry } from 'core/registry';
 
 const angular = require('angular');
