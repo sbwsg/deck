@@ -1,4 +1,5 @@
 import { module } from 'angular';
+import * as React from 'react';
 
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
@@ -35,5 +36,31 @@ module(BASE64_ARTIFACT, []).config(() => {
   </div>
 </div>
 `,
+    cmp: props => {
+      const labelColumns = isFinite(props.labelColumns) ? props.labelColumns : 2;
+      const fieldColumns = isFinite(props.fieldColumns) ? props.fieldColumns : 8;
+      const labelClassName = 'col-md-' + labelColumns;
+      const fieldClassName = 'col-md-' + fieldColumns;
+      return (
+        <div className="col-md-12">
+          <div className="form-group row">
+            <label className={labelClassName + ' sm-label-right'}>Name</label>
+            <div className={fieldClassName}>
+              <input
+                type="text"
+                placeholder="base64-artifact"
+                className="form-control input-sm"
+                value={props.artifact.name}
+                onChange={e => {
+                  const clone = { ...props.artifact };
+                  clone.name = e.target.value;
+                  props.onChange(clone);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      );
+    },
   });
 });

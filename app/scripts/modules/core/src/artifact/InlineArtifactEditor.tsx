@@ -1,74 +1,37 @@
 import * as React from 'react';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
-import { isFunction, bindAll } from 'lodash';
-import {
-  IArtifactAccount,
-  IArtifact,
-  IArtifactKindConfig,
-  IExpectedArtifact,
-  Registry,
-  ExpectedArtifactService,
-} from 'core';
+import { isFunction, bindAll, cloneDeep } from 'lodash';
+import { IArtifactAccount, IArtifact, IArtifactKindConfig, IExpectedArtifact, Registry } from 'core';
 import { ArtifactKindSelect } from './ArtifactKindSelect';
 
 export interface IInlineArtifactEditorProps {
   accounts: IArtifactAccount[];
-  expectedArtifacts: IExpectedArtifact[];
-  excludedArtifactTypes: RegExp[];
-  offeredArtifactTypes: RegExp[];
+  expectedArtifact: IExpectedArtifact;
+  excludedTypes: RegExp[];
+  offeredTypes: RegExp[];
   onChange: (ea: IExpectedArtifact, a: IArtifactAccount) => void;
   selectedAccountName: string;
-  selectedArtifactId: string;
   showIcons: boolean;
 }
 
-export interface IInlineArtifactEditorState {
-  expectedArtifact: IExpectedArtifact;
-  selectedAccountName: string;
-  selectedArtifactId: string;
-}
-
-export class InlineArtifactEditor extends React.Component<IInlineArtifactEditorProps, IInlineArtifactEditorState> {
+export class InlineArtifactEditor extends React.Component<IInlineArtifactEditorProps> {
   constructor(props: IInlineArtifactEditorProps) {
     super(props);
     bindAll(this, ['onChangeKind', 'onEditArtifact', 'onChangeArtifactAccount']);
-    const state: IInlineArtifactEditorState = {
-      selectedAccountName: props.selectedAccountName,
-      selectedArtifactId: props.selectedArtifactId,
-      expectedArtifact: null,
-    };
-    if (props.selectedArtifactId) {
-      state.expectedArtifact = props.expectedArtifacts.find(ea => ea.id === props.selectedArtifactId);
-    }
-    this.state = state;
   }
 
   private onChangeKind(newConfig: IArtifactKindConfig) {
-    let expectedArtifact = null;
-    let selectedArtifactId = null;
-    if (newConfig == null) {
-      this.setState({ selectedArtifactId: null });
-    } else {
-      expectedArtifact = ExpectedArtifactService.createEmptyArtifact(newConfig.key);
-      selectedArtifactId = expectedArtifact.id;
-    }
-    this.setState({
-      expectedArtifact,
-      selectedArtifactId,
-    });
-    this.publishExpectedArtifact(expectedArtifact);
+    const artifact = cloneDeep(this.props.expectedArtifact);
+    artifact.matchArtifact.kind = newConfig.key;
+    artifact.matchArtifact.type = newConfig.type;
+    this.publishExpectedArtifact(artifact);
   }
 
   private onEditArtifact(artifact: IArtifact) {
-    const updated = {
-      ...this.state.expectedArtifact,
-      matchArtifact: artifact,
-    };
-    this.setState({
-      expectedArtifact: updated,
-    });
-    this.publishExpectedArtifact(updated);
+    const expectedArtifact = { ...this.props.expectedArtifact, matchArtifact: artifact };
+    this.setState({ expectedArtifact });
+    this.publishExpectedArtifact(expectedArtifact);
   }
 
   private onChangeArtifactAccount(account: IArtifactAccount) {
@@ -77,15 +40,17 @@ export class InlineArtifactEditor extends React.Component<IInlineArtifactEditorP
   }
 
   private publishExpectedArtifact(artifact: IExpectedArtifact) {
-    if (isFunction(this.props.onChange)) {
-      const account = this.props.accounts.find(a => a.name === this.state.selectedAccountName);
-      this.props.onChange(artifact, account);
-    }
+    const account = this.props.accounts.find(a => a.name === this.props.selectedAccountName);
+    this.publish(artifact, account);
   }
 
   private publishAccount(account: IArtifactAccount) {
+    this.publish(this.props.expectedArtifact, account);
+  }
+
+  private publish(artifact: IExpectedArtifact, account: IArtifactAccount) {
     if (isFunction(this.props.onChange)) {
-      this.props.onChange(this.state.expectedArtifact, account);
+      this.props.onChange(artifact, account);
     }
   }
 
@@ -100,13 +65,13 @@ export class InlineArtifactEditor extends React.Component<IInlineArtifactEditorP
             return false;
           }
         }
-        if (this.props.offeredArtifactTypes) {
-          if (!this.props.offeredArtifactTypes.find(t => t.test(ak.type))) {
+        if (this.props.offeredTypes) {
+          if (!this.props.offeredTypes.find(t => t.test(ak.type))) {
             return false;
           }
         }
-        if (this.props.excludedArtifactTypes) {
-          if (this.props.excludedArtifactTypes.find(t => t.test(ak.type))) {
+        if (this.props.excludedTypes) {
+          if (this.props.excludedTypes.find(t => t.test(ak.type))) {
             return false;
           }
         }
@@ -117,7 +82,7 @@ export class InlineArtifactEditor extends React.Component<IInlineArtifactEditorP
 
   public render(): any {
     const kinds = Registry.pipeline.getArtifactKinds();
-    const value = this.state.expectedArtifact;
+    const value = this.props.expectedArtifact;
     const valueKind = !!value ? kinds.find(ak => ak.type === value.matchArtifact.type) : null;
     const ValueCmp = valueKind && valueKind.cmp;
     return (
@@ -146,11 +111,10 @@ module(INLINE_ARTIFACT_EDITOR, []).component(
   'inlineArtifactEditor',
   react2angular(InlineArtifactEditor, [
     'accounts',
-    'expectedArtifacts',
-    'excludedArtifactTypes',
-    'offeredArtifactTypes',
+    'expectedArtifact',
+    'excludedTypes',
+    'offeredTypes',
     'selectedAccountName',
-    'selectedArtifactId',
     'showIcons',
     'onChange',
   ]),

@@ -1,4 +1,5 @@
 import { IController, IScope } from 'angular';
+import { get } from 'lodash';
 import { loadAll } from 'js-yaml';
 
 import {
@@ -21,6 +22,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public excludedManifestArtifactPatterns = [ArtifactTypePatterns.KUBERNETES, ArtifactTypePatterns.DOCKER_IMAGE];
 
   public expectedArtifacts: IExpectedArtifact[];
+  public onChangeManifestArtifact: (e: IExpectedArtifact, a: IArtifactAccount) => void;
 
   constructor(private $scope: IScope) {
     'ngInject';
@@ -48,8 +50,23 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
     );
 
     this.onChangeManifestArtifact = (expectedArtifact: IExpectedArtifact, account: IArtifactAccount) => {
-      this.$scope.stage.manifestArtifactId = expectedArtifact ? expectedArtifact.id : '';
-      this.$scope.stage.manifestArtifactAccount = account ? account.name : '';
+      const pipelineArtifacts = this.$scope.$parent.pipeline.expectedArtifacts;
+      if (expectedArtifact) {
+        for (let i = 0; i < pipelineArtifacts.length; i++) {
+          if (pipelineArtifacts[i].id === expectedArtifact.id) {
+            pipelineArtifacts[i] = expectedArtifact;
+            break;
+          }
+        }
+        this.$scope.stage.manifestArtifactId = expectedArtifact.id;
+      } else {
+        this.$scope.stage.manifestArtifactId = '';
+      }
+      if (account) {
+        this.$scope.stage.manifestArtifactAccount = account.name;
+      } else {
+        this.$scope.stage.manifestArtifactAccount = '';
+      }
       this.$scope.$apply();
     };
   }
@@ -68,5 +85,23 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
     } catch (e) {
       this.$scope.ctrl.metadata.yamlError = true;
     }
+  }
+
+  public getManifestArtifact() {
+    const artifactId = get(this, ['$scope', 'stage', 'manifestArtifactId'], null);
+    let artifact: IExpectedArtifact;
+    let createNew = false;
+    if (artifactId) {
+      artifact = this.expectedArtifacts.find(ea => ea.id === artifactId);
+      if (!artifact) {
+        createNew = true;
+      }
+    } else {
+      createNew = true;
+    }
+    if (createNew) {
+      artifact = ExpectedArtifactService.addNewArtifactTo(this.$scope.$parent.pipeline);
+    }
+    return artifact;
   }
 }

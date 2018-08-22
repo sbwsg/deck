@@ -40,10 +40,10 @@
                             accounts="ctrl.metadata.backingData.artifactAccounts"
                             expected-artifacts="ctrl.expectedArtifacts"
                             selected-account-id="ctrl.$scope.stage.manifestArtifactAccount"
-                            selected-artifact-id="ctrl.$scope.stage.manifestArtifactId"
-                            excluded-artifact-types="ctrl.excludedManifestArtifactPatterns"
+                            excluded-types="ctrl.excludedManifestArtifactPatterns"
                             show-icons="true"
                             on-change="ctrl.onChangeManifestArtifact"
+                            expected-artifact="ctrl.getManifestArtifact()"
                             >
     </inline-artifact-editor>
     <hr>
