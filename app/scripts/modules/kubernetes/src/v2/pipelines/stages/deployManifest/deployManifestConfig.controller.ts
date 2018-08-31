@@ -83,13 +83,11 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
     const allAccounts = get(this, ['metadata', 'backingData', 'artifactAccounts'], []);
     this.accountsForManifestType = allAccounts.filter(a => a.types.includes(artifact.type));
     const { manifestArtifactAccount } = this.$scope.stage;
-    if (manifestArtifactAccount) {
-      if (!this.accountsForManifestType.find(a => a.name === manifestArtifactAccount)) {
-        if (this.accountsForManifestType[0]) {
-          this.$scope.stage.manifestArtifactAccount = this.accountsForManifestType[0].name;
-        } else {
-          this.$scope.stage.manifestArtifactAccount = '';
-        }
+    if (!manifestArtifactAccount || !this.accountsForManifestType.find(a => a.name === manifestArtifactAccount)) {
+      if (this.accountsForManifestType[0]) {
+        this.$scope.stage.manifestArtifactAccount = this.accountsForManifestType[0].name;
+      } else {
+        this.$scope.stage.manifestArtifactAccount = '';
       }
     }
   };
@@ -107,6 +105,22 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
     this.$scope.$apply();
   };
 
+  public onManifestArtifactAccountChange = (account: IArtifactAccount) => {
+    this.$scope.stage.manifestArtifactAccount = account ? account.name : '';
+    this.$scope.$apply();
+  };
+
+  public selectedAccount(): IArtifactAccount {
+    const account = this.accountsForManifestType.find(a => a.name === this.$scope.stage.manifestArtifactAccount);
+    return account;
+  }
+
+  public canShowAccountSelect() {
+    return (
+      this.$scope.showCreateArtifactForm && this.accountsForManifestType.length > 1 && this.manifestExpectedArtifact
+    );
+  }
+
   public onManifestArtifactCreated = (event: {
     expectedArtifact: IExpectedArtifact;
     account: IArtifactAccount;
@@ -114,10 +128,11 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   }) => {
     this.manifestExpectedArtifact = event.expectedArtifact;
     this.$scope.stage.manifestArtifactId = event.expectedArtifact.id;
-    this.$scope.stage.manifestArtifactAccount = event.account.name;
+    this.$scope.stage.manifestArtifactAccount = event.account ? event.account.name : '';
     ExpectedArtifactService.addArtifactTo(event.expectedArtifact, event.source.source);
     this.$scope.showCreateArtifactForm = false;
     this.updateExpectedArtifacts();
+    this.updateAccountsForManifestArtifact();
     this.$scope.$apply();
   };
 }

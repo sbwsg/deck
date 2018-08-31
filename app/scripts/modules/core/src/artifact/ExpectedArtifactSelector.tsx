@@ -2,11 +2,11 @@ import { module } from 'angular';
 import * as React from 'react';
 import { react2angular } from 'react2angular';
 import { TetheredSelect, IExpectedArtifact, IArtifact } from 'core';
-import { ArtifactIconService } from './ArtifactIconService';
+import { ArtifactIcon } from './ArtifactIcon';
 import { ExpectedArtifactService } from './expectedArtifact.service';
+import { ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT } from './ArtifactAccountSelector';
 import { EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT } from './ExpectedArtifactKindSelector';
 import { EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT } from './ExpectedArtifactSourceSelector';
-import { ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT } from './ArtifactAccountSelector';
 
 export interface IExpectedArtifactSelectorProps {
   expectedArtifacts: IExpectedArtifact[];
@@ -20,10 +20,6 @@ export interface IExpectedArtifactSelectorProps {
   excludedArtifactTypes?: RegExp[];
 }
 
-export interface IExpectedArtifactSelectorState {
-  expectedArtifact: IExpectedArtifact;
-}
-
 export interface IExpectedArtifactSelectorOption {
   expectedArtifact?: IExpectedArtifact;
   requestingNew: boolean;
@@ -31,10 +27,7 @@ export interface IExpectedArtifactSelectorOption {
 
 type IExpectedArtifactFilter = (ea: IExpectedArtifact, a: IArtifact) => boolean;
 
-export class ExpectedArtifactSelector extends React.Component<
-  IExpectedArtifactSelectorProps,
-  IExpectedArtifactSelectorState
-> {
+export class ExpectedArtifactSelector extends React.Component<IExpectedArtifactSelectorProps> {
   public static defaultProps = {
     requestingNew: false,
     showIcons: true,
@@ -42,9 +35,6 @@ export class ExpectedArtifactSelector extends React.Component<
 
   constructor(props: IExpectedArtifactSelectorProps) {
     super(props);
-    this.state = {
-      expectedArtifact: props.selected,
-    };
   }
 
   private renderOption = (e: IExpectedArtifactSelectorOption) => {
@@ -58,7 +48,7 @@ export class ExpectedArtifactSelector extends React.Component<
       if (artifact != null) {
         return (
           <span>
-            {this.props.showIcons && <img src={ArtifactIconService.getPath(artifact.type)} width="16" height="16" />}
+            {this.props.showIcons && <ArtifactIcon artifact={artifact} width="16" height="16" />}
             {artifact.name || artifact.reference}
           </span>
         );
@@ -111,6 +101,7 @@ export class ExpectedArtifactSelector extends React.Component<
     const value = { expectedArtifact: this.props.selected, requestingNew: this.props.requestingNew };
     return (
       <TetheredSelect
+        key="artifacts"
         className={this.props.className || ''}
         options={options}
         optionRenderer={this.renderOption}

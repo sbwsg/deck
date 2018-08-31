@@ -47,6 +47,14 @@
                                   >
       </expected-artifact-selector-react>
     </stage-config-field>
+    <stage-config-field label="Artifact Account" field-columns="8" ng-if="ctrl.canShowAccountSelect()">
+      <artifact-account-selector-react
+        accounts="ctrl.accountsForManifestType"
+        selected="ctrl.selectedAccount()"
+        on-change="ctrl.onManifestArtifactAccountChange"
+        >
+      </artifact-account-selector-react>
+    </stage-config-field>
     <expected-artifact-editor-react ng-if="ctrl.$scope.showCreateArtifactForm"
                                     kinds="ctrl.supportedManifestKinds"
                                     sources="ctrl.artifactSources"

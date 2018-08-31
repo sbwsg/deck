@@ -2,7 +2,7 @@ import { module } from 'angular';
 import * as React from 'react';
 import { react2angular } from 'react2angular';
 import { TetheredSelect, IArtifactKindConfig } from 'core';
-import { ArtifactIconService } from './ArtifactIconService';
+import { ArtifactIcon } from './ArtifactIcon';
 
 export interface IExpectedArtifactKindSelectorProps {
   kinds: IArtifactKindConfig[];
@@ -34,7 +34,7 @@ export class ExpectedArtifactKindSelector extends React.Component<
   private renderOption = (o: IArtifactKindConfig) => {
     return (
       <span>
-        {this.props.showIcons && <img src={ArtifactIconService.getPath(o.type)} width="16" height="16" />}
+        {this.props.showIcons && <ArtifactIcon kind={o} width="16" height="16" />}
         {o.label} - {o.description}
       </span>
     );

@@ -85,7 +85,12 @@ export class ExpectedArtifactEditor extends React.Component<
 
   private onArtifactEdit = (artifact: IArtifact) => {
     const expectedArtifact = { ...this.state.expectedArtifact, matchArtifact: { ...artifact } };
-    this.setState({ expectedArtifact });
+    let account = this.state.account;
+    if (this.state.expectedArtifact.matchArtifact.type !== artifact.type) {
+      const accounts = this.accountsForExpectedArtifact(expectedArtifact);
+      account = accounts[0];
+    }
+    this.setState({ expectedArtifact, account });
   };
 
   public render() {

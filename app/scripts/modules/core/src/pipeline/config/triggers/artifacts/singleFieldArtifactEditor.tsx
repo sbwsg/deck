@@ -15,25 +15,23 @@ export const singleFieldArtifactEditor = (
     const labelClassName = 'col-md-' + labelColumns;
     const fieldClassName = 'col-md-' + fieldColumns;
     return (
-      <div className="col-md-12">
-        <div className="form-group row">
-          <label className={labelClassName + ' sm-label-right'}>
-            {label}
-            {helpTextKey && <HelpField id={helpTextKey} />}
-          </label>
-          <div className={fieldClassName}>
-            <input
-              type="text"
-              placeholder={placeholder}
-              className="form-control input-sm"
-              value={props.artifact[fieldKey] || ''}
-              onChange={e => {
-                const clone = { ...props.artifact };
-                clone[fieldKey] = e.target.value;
-                props.onChange(clone);
-              }}
-            />
-          </div>
+      <div className="form-group row">
+        <label className={labelClassName + ' sm-label-right'}>
+          {label}
+          {helpTextKey && <HelpField id={helpTextKey} />}
+        </label>
+        <div className={fieldClassName}>
+          <input
+            type="text"
+            placeholder={placeholder}
+            className="form-control input-sm"
+            value={props.artifact[fieldKey] || ''}
+            onChange={e => {
+              const clone = { ...props.artifact };
+              clone[fieldKey] = e.target.value;
+              props.onChange(clone);
+            }}
+          />
         </div>
       </div>
     );
