@@ -36,6 +36,25 @@
                                 show-icons="true">
     </expected-artifact-selector>
     <hr>
+    <stage-config-field label="Expected Artifact" help-key="kubernetes.manifest.expectedArtifact" field-columns="8">
+      <expected-artifact-selector-react ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+                                  expected-artifacts="ctrl.expectedArtifacts"
+                                  selected="ctrl.manifestExpectedArtifact"
+                                  on-change="ctrl.onManifestArtifactChange"
+                                  on-request-create="ctrl.onManifestArtifactRequestCreate"
+                                  excluded-artifact-types="ctrl.excludedManifestArtifactPatterns"
+                                  requesting-new="ctrl.$scope.showCreateArtifactForm"
+                                  >
+      </expected-artifact-selector-react>
+    </stage-config-field>
+    <expected-artifact-editor-react ng-if="ctrl.$scope.showCreateArtifactForm"
+                                    kinds="ctrl.supportedManifestKinds"
+                                    sources="ctrl.artifactSources"
+                                    accounts="ctrl.metadata.backingData.artifactAccounts"
+                                    on-save="ctrl.onManifestArtifactCreated"
+    >
+    </expected-artifact-editor-react>
+    <hr>
     <expected-artifact-multi-selector command="ctrl.$scope.stage"
                                       ids-field="requiredArtifactIds"
                                       artifact-label="Req. Artifacts To Bind"
