@@ -20,6 +20,8 @@ import {
 
 type ManifestArtifactSource = IArtifactSource<IStage | IPipeline>;
 
+const excludedManifestTypes = [ArtifactTypePatterns.KUBERNETES, ArtifactTypePatterns.DOCKER_IMAGE];
+
 export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public state = {
     loaded: false,
@@ -29,13 +31,16 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public textSource = 'text';
   public artifactSource = 'artifact';
   public sources = [this.textSource, this.artifactSource];
-  public excludedManifestArtifactPatterns = [ArtifactTypePatterns.KUBERNETES, ArtifactTypePatterns.DOCKER_IMAGE];
+  public excludedManifestArtifactPatterns = excludedManifestTypes;
 
   public expectedArtifacts: IExpectedArtifact[] = [];
   public manifestExpectedArtifact?: IExpectedArtifact;
   public artifactSources: ManifestArtifactSource[];
   public accountsForManifestType: IArtifactAccount[] = [];
-  public supportedManifestKinds = Registry.pipeline.getArtifactKinds().filter(a => a.isMatch);
+  public supportedManifestKinds = Registry.pipeline
+    .getArtifactKinds()
+    .filter(a => a.isMatch)
+    .filter(a => !excludedManifestTypes.find(t => t.test(a.type)));
 
   constructor(private $scope: IScope) {
     'ngInject';

@@ -93,11 +93,17 @@ export class ExpectedArtifactEditor extends React.Component<
     this.setState({ expectedArtifact, account });
   };
 
+  private availableKinds = () => {
+    const { kinds, accounts } = this.props;
+    return kinds.filter(k => k.key === 'custom' || accounts.find(a => a.types.includes(k.type)));
+  };
+
   public render() {
-    const { sources, kinds } = this.props;
+    const { sources } = this.props;
     const { expectedArtifact, source, account } = this.state;
     const accounts = this.accountsForExpectedArtifact(expectedArtifact);
     const artifact = ExpectedArtifactService.artifactFromExpected(expectedArtifact);
+    const kinds = this.availableKinds().sort((a, b) => a.label.localeCompare(b.label));
     const kind = artifact ? kinds.find(k => k.key === artifact.kind) : null;
     const EditCmp = kind && kind.editCmp;
     return (
