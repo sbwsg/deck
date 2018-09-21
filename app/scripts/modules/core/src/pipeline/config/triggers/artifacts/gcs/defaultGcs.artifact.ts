@@ -20,6 +20,7 @@ module(DEFAULT_GCS_ARTIFACT, []).config(() => {
 
       this.onReferenceChange = () => {
         const ref = this.artifact.reference;
+        console.log('onReferenceChange', { ref });
         if (isNil(ref)) {
           return;
         }

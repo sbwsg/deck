@@ -1,5 +1,6 @@
 import { module } from 'angular';
 
+import { ARTIFACT_PREVIEW_LINK_COMPONENT } from './react/ArtifactPreviewLink';
 import { EXPECTED_ARTIFACT_SELECTOR_COMPONENT_REACT } from './react/ExpectedArtifactSelector';
 import { EXPECTED_ARTIFACT_EDITOR_COMPONENT_REACT } from './react/ExpectedArtifactEditor';
 import { SUMMARIZE_EXPECTED_ARTIFACT_FILTER } from './summarizeExpectedArtifact';
@@ -9,6 +10,7 @@ import { EXECUTION_ARTIFACT_TAB } from './artifactTab';
 
 export const ARTIFACT_MODULE = 'spinnaker.core.artifact';
 module(ARTIFACT_MODULE, [
+  ARTIFACT_PREVIEW_LINK_COMPONENT,
   EXECUTION_ARTIFACT_TAB,
   EXPECTED_ARTIFACT_MULTI_SELECTOR_COMPONENT,
   EXPECTED_ARTIFACT_SELECTOR_COMPONENT_REACT,

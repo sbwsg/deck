@@ -1,6 +1,11 @@
 import { IController, IScope } from 'angular';
 import { get, defaults } from 'lodash';
-import { ExpectedArtifactSelectorViewController, NgManifestArtifactDelegate, IManifest } from '@spinnaker/core';
+import {
+  ExpectedArtifactSelectorViewController,
+  NgManifestArtifactDelegate,
+  ExpectedArtifactService,
+  IManifest,
+} from '@spinnaker/core';
 
 import {
   IKubernetesManifestCommandMetadata,
@@ -57,4 +62,16 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
     // This method is called from a React component.
     this.$scope.$applyAsync();
   };
+
+  public getPreviewArtifact() {
+    return ExpectedArtifactService.artifactFromExpected(this.manifestArtifactDelegate.getSelectedExpectedArtifact());
+  }
+
+  public getPreviewAccount() {
+    const account = this.manifestArtifactDelegate.getSelectedAccount();
+    if (account) {
+      return account.name;
+    }
+    return null;
+  }
 }

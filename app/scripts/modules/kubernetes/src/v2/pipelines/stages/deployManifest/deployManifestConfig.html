@@ -57,6 +57,8 @@
                                     on-save="ctrl.manifestArtifactController.onArtifactCreated"
     >
     </expected-artifact-editor-react>
+    <artifact-preview-link artifact="ctrl.getPreviewArtifact()" account="ctrl.getPreviewAccount()">
+    </artifact-preview-link>
     <hr>
     <expected-artifact-multi-selector command="ctrl.$scope.stage"
                                       ids-field="requiredArtifactIds"

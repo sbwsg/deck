@@ -1,6 +1,12 @@
 import * as React from 'react';
 import { get, has } from 'lodash';
-import { IExpectedArtifact, IExecution, IExecutionDetailsSectionProps, ExecutionDetailsSection } from 'core';
+import {
+  IExpectedArtifact,
+  IExecution,
+  IExecutionDetailsSectionProps,
+  ExecutionDetailsSection,
+  AccountService,
+} from 'core';
 import { ArtifactIconList } from './ArtifactIconList';
 
 import '../artifactTab.less';
@@ -24,11 +30,16 @@ export class ExecutionArtifactTab extends React.Component<IExecutionDetailsSecti
     const stageConfig = Registry.pipeline.getStageConfig(stage);
     const stageContext = get(stage, ['context'], {});
 
+    console.log('artifactLists', { stageConfig });
+
     const consumedIds = new Set(
       stageConfig && stageConfig.artifactExtractor ? stageConfig.artifactExtractor(stageContext) : [],
     );
 
+    console.log('extractedArtifact', stageConfig.artifactExtractor(stageContext));
+
     const boundArtifacts = this.extractBoundArtifactsFromExecution(execution);
+    console.log('boundArtifacts', boundArtifacts);
 
     const consumedArtifacts = boundArtifacts
       .filter(rea => consumedIds.has(rea.id))
@@ -37,8 +48,16 @@ export class ExecutionArtifactTab extends React.Component<IExecutionDetailsSecti
 
     const producedArtifacts = get(stage, ['outputs', 'artifacts'], []).slice();
 
+    console.log('consumedArtifacts', consumedArtifacts);
+
     return { consumedArtifacts, producedArtifacts };
   }
+
+  private onArtifactClicked = (artifact: IArtifact) => {
+    const requestArtifact = { ...artifact };
+    console.log('onArtifactClicked', this.props.stage, this.props.execution, requestArtifact);
+    // API.one('artifacts', 'fetch').data(artifact)
+  };
 
   public render() {
     const { consumedArtifacts, producedArtifacts } = this.artifactLists();
@@ -48,7 +67,7 @@ export class ExecutionArtifactTab extends React.Component<IExecutionDetailsSecti
           <div className="col-sm-6 artifact-list-container">
             <h5>Consumed Artifacts</h5>
             <div>
-              <ArtifactIconList artifacts={consumedArtifacts} />
+              <ArtifactIconList artifacts={consumedArtifacts} onClick={this.onArtifactClicked} />
             </div>
           </div>
           <div className="col-sm-6 artifact-list-container">

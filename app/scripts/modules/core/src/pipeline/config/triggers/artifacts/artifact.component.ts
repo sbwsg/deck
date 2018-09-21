@@ -53,6 +53,7 @@ class ArtifactCtrl implements IController {
       scope['ctrl'] = controller;
     }
 
+    console.log('renderArtifactConfigTemplate', config);
     const templateBody = this.$compile(template)(scope) as any;
     this.$element.find('.artifact-body').html(templateBody);
   }
@@ -82,6 +83,7 @@ class ArtifactCtrl implements IController {
 
   public loadArtifactKind(): void {
     const { kind } = this.artifact;
+    console.log('loadArtifactKind', { kind });
     if (!kind) {
       return;
     }
@@ -89,6 +91,7 @@ class ArtifactCtrl implements IController {
       return config.key === kind;
     });
 
+    console.log('loadArtifactKind', { artifactKindConfig });
     if (artifactKindConfig.length) {
       const config = artifactKindConfig[0];
       this.description = config.description;
