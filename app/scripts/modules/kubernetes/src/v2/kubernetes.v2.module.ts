@@ -38,6 +38,7 @@ import { KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER } from './securityGroup/transf
 import { KUBERNETES_ANNOTATION_CUSTOM_SECTIONS } from './manifest/annotationCustomSections.component';
 import { KUBERNETES_V2_RESOURCE_STATES } from './resources/resources.state';
 import { KUBERNETES_COPY_FROM_TEMPLATE_BUTTON } from './pipelines/stages/deployManifest/CopyFromTemplateButton';
+import { KUBERNETES_PREVIEW_MANIFEST_ARTIFACT_BUTTON } from './pipelines/stages/deployManifest/PreviewManifestArtifactButton';
 import { KUBERNETES_MANIFEST_IMAGE_DETAILS } from 'kubernetes/v2/manifest/manifestImageDetails.component';
 import { YAML_EDITOR_COMPONENT } from './manifest/yaml/yamlEditor.component';
 import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';
@@ -90,6 +91,7 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_ANNOTATION_CUSTOM_SECTIONS,
   KUBERNETES_MANIFEST_IMAGE_DETAILS,
   KUBERNETES_V2_RESOURCE_STATES,
+  KUBERNETES_PREVIEW_MANIFEST_ARTIFACT_BUTTON,
   YAML_EDITOR_COMPONENT,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {

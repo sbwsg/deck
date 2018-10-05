@@ -1,6 +1,13 @@
 import { IController, IScope } from 'angular';
 import { get, defaults } from 'lodash';
-import { ExpectedArtifactSelectorViewController, NgManifestArtifactDelegate, IManifest } from '@spinnaker/core';
+import {
+  ExpectedArtifactSelectorViewController,
+  ExpectedArtifactService,
+  NgManifestArtifactDelegate,
+  IManifest,
+  IModalService,
+} from '@spinnaker/core';
+import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';
 
 import {
   IKubernetesManifestCommandMetadata,
@@ -21,7 +28,7 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   public manifestArtifactDelegate: NgManifestArtifactDelegate;
   public manifestArtifactController: ExpectedArtifactSelectorViewController;
 
-  constructor(private $scope: IScope) {
+  constructor(private $scope: IScope, private $uibModal: IModalService) {
     'ngInject';
     KubernetesManifestCommandBuilder.buildNewManifestCommand(
       this.$scope.application,
@@ -56,5 +63,24 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
     this.$scope.stage.manifests = [manifest];
     // This method is called from a React component.
     this.$scope.$applyAsync();
+  };
+
+  public previewMatchingArtifact = () => {
+    try {
+      const expected = this.manifestArtifactDelegate.getSelectedExpectedArtifact();
+      const account = this.manifestArtifactDelegate.getSelectedAccount();
+      console.log({ expected, account });
+      if (expected.matchArtifact && account) {
+        ExpectedArtifactService.artifactContents(expected.matchArtifact, account)
+          .then(result => {
+            console.log({ result });
+          })
+          .catch(e => {
+            console.error('Error fetching artifact contents', e);
+          });
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 }

@@ -19,7 +19,12 @@
         </label><br/>
         <label class="sm-label-right">
           <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.artifactSource}}">
-          {{ ctrl.artifactSource | robotToHuman }}
+          {{ ctrl.artifactSource | robotToHuman }} -
+          <kubernetes-preview-manifest-artifact-button
+            expected-artifact="ctrl.manifestArtifactDelegate.getSelectedExpectedArtifact()"
+            account="ctrl.manifestArtifactDelegate.getSelectedAccount()"
+            >
+          </kubernetes-preview-manifest-artifact-button>
         </label>
       </stage-config-field>
     </ng-form>

@@ -1,5 +1,15 @@
+import { IPromise } from 'angular';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
-import { Registry, IPipeline, IStage, IExpectedArtifact, IExecutionContext, IArtifact, IArtifactSource } from 'core';
+import {
+  Registry,
+  API,
+  IPipeline,
+  IStage,
+  IExpectedArtifact,
+  IExecutionContext,
+  IArtifact,
+  IArtifactSource,
+} from 'core';
 import { UUIDGenerator } from 'core/utils/uuid.service';
 
 export class ExpectedArtifactService {
@@ -87,5 +97,10 @@ export class ExpectedArtifactService {
       .map(s => ({ source: s, label: 'Stage (' + s.name + ')' }))
       .forEach(s => sources.push(s));
     return sources;
+  }
+
+  public static artifactContents(artifact: IArtifact, account: IArtifactAccount): IPromise<any> {
+    const requestBody = { ...artifact, artifactAccount: account.name };
+    return API.one('artifacts', 'fetch').put(requestBody);
   }
 }
