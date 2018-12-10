@@ -44,7 +44,8 @@
       "cloudfoundry/": ["cloudfoundry/src"],
       "@spinnaker/titus": ["titus/src"],
       "titus/*": ["titus/src/*"],
-      "titus/": ["titus/src"]
+      "titus/": ["titus/src"],
+      "functional/*": ["../test/functional/*"]
     },
     "pretty": true,
     "removeComments": true,
