@@ -1,12 +1,16 @@
 import * as React from 'react';
 import { DateTime } from 'luxon';
 import { get, memoize } from 'lodash';
+import { UISref } from '@uirouter/react';
+import { API } from 'core/api/ApiService';
+import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
 import { ReactModal } from 'core/presentation';
 import {
   ShowPipelineTemplateJsonModal,
   IShowPipelineTemplateJsonModalProps,
 } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
+import { ReactInjector } from 'core/reactShims';
 import { PipelineTemplateReader } from '../PipelineTemplateReader';
 
 import './PipelineTemplatesV2.less';
@@ -29,28 +33,40 @@ export const PipelineTemplatesV2Error = (props: { message: string }) => {
 export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV2State> {
   constructor(props: {}) {
     super(props);
-    this.state = { templates: [], fetchError: null, searchValue: '' };
+    const { $stateParams } = ReactInjector;
+    const templateId: string = $stateParams.templateId;
+    this.state = { templates: [], fetchError: null, searchValue: '', templateId };
   }
 
   public componentDidMount() {
-    this.fetchTemplates();
+    const fetchPromise = this.fetchTemplates();
+    if (this.state.templateId) {
+      fetchPromise.then(() => {
+        const template = this.state.templates.find(t => {
+          return PipelineTemplateV2Service.idForTemplate(t) === this.state.templateId;
+        });
+        this.showTemplateJson(template);
+      });
+    }
   }
 
   private fetchTemplates = () => {
     const templatesPromise = PipelineTemplateReader.getV2PipelineTemplateList();
-    templatesPromise.then(
-      templates => {
-        this.setState({ templates: this.sortTemplates(templates) });
-      },
-      err => {
-        if (err) {
-          const message: string = get(err, 'data.message') || get(err, 'message') || String(err);
-          this.setState({ fetchError: message });
-        } else {
-          this.setState({ fetchError: 'Unknown error' });
-        }
-      },
-    );
+    return new Promise((resolve, reject) => {
+      templatesPromise.then(
+        templates => {
+          this.setState({ templates: this.sortTemplates(templates) }, resolve);
+        },
+        err => {
+          if (err) {
+            const message: string = get(err, 'data.message') || get(err, 'message') || String(err);
+            this.setState({ fetchError: message }, () => reject(new Error(message)));
+          } else {
+            this.setState({ fetchError: 'Unknown error' }, () => reject(new Error('Unknown error')));
+          }
+        },
+      );
+    });
   };
 
   private sortTemplates = (templates: IPipelineTemplateV2[]) => {
@@ -67,11 +83,6 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
     });
   };
 
-  private idForTemplate = (template: IPipelineTemplateV2) => {
-    const { id, version = '', digest = '' } = template;
-    return `${id}:${version}:${digest}`;
-  };
-
   private getUpdateTimeForTemplate = (template: IPipelineTemplateV2) => {
     const millis = Number.parseInt(template.updateTs, 10);
     if (isNaN(millis)) {
@@ -79,6 +90,11 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
     }
     const dt = DateTime.fromMillis(millis);
     return dt.toLocaleString(DateTime.DATETIME_SHORT);
+  };
+
+  // Updates the URL to remove any pipeline ID from the path.
+  private onDetailModalClosed = () => {
+    ReactInjector.$state.go('home.pipeline-templates');
   };
 
   private showTemplateJson = (template: IPipelineTemplateV2) => {
@@ -90,7 +106,30 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
     };
     ReactModal.show<IShowPipelineTemplateJsonModalProps>(ShowPipelineTemplateJsonModal, props, {
       dialogClassName: 'modal-lg modal-fullscreen',
-    });
+    }).then(this.onDetailModalClosed, this.onDetailModalClosed);
+  };
+
+  private deleteTemplate = (template: IPipelineTemplateV2) => {
+    let request = API.one('v2')
+      .one('pipelineTemplates')
+      .one(template.id);
+
+    const params: { digest?: string; version?: string } = {};
+    if (template.digest) {
+      params.digest = template.digest;
+    } else if (template.version) {
+      params.version = template.version;
+    }
+    request = request.withParams(params);
+
+    request.remove().then(
+      () => {
+        this.fetchTemplates();
+      },
+      (err: Error) => {
+        console.error('Unsuccessful delete', err, arguments);
+      },
+    );
   };
 
   private onSearchFieldChanged = (event: React.SyntheticEvent<HTMLInputElement>) => {
@@ -100,7 +139,7 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
 
   // Creates a cache key suitable for _.memoize
   private filterMemoizeResolver = (templates: IPipelineTemplateV2[], query: string): string => {
-    return templates.reduce((s, t) => s + this.idForTemplate(t), '') + query;
+    return templates.reduce((s, t) => s + PipelineTemplateV2Service.idForTemplate(t), '') + query;
   };
 
   private filterSearchResults = memoize((templates: IPipelineTemplateV2[], query: string): IPipelineTemplateV2[] => {
@@ -167,13 +206,21 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
                     {filteredResults.map(template => {
                       const { metadata } = template;
                       return (
-                        <tr key={this.idForTemplate(template)}>
+                        <tr key={PipelineTemplateV2Service.idForTemplate(template)}>
                           <td>{metadata.name || '-'}</td>
                           <td>{metadata.owner || '-'}</td>
                           <td>{this.getUpdateTimeForTemplate(template) || '-'}</td>
                           <td className="pipeline-template-actions">
-                            <button className="link" onClick={() => this.showTemplateJson(template)}>
-                              View
+                            <UISref
+                              to={`.pipeline-templates-detail`}
+                              params={{ templateId: PipelineTemplateV2Service.idForTemplate(template) }}
+                            >
+                              <button className="link" onClick={() => this.showTemplateJson(template)}>
+                                View
+                              </button>
+                            </UISref>
+                            <button className="link" onClick={() => this.deleteTemplate(template)}>
+                              Delete
                             </button>
                           </td>
                         </tr>
